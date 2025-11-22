@@ -7,11 +7,7 @@ use axum::{
     },
     Router,
 };
-use tower_http::{
-    cors::{Any, CorsLayer},
-    services::ServeDir,
-};
-use tower_http::services::ServeFile;
+use tower_http::cors::{Any, CorsLayer};c
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -20,15 +16,11 @@ use crate::{controller, ApiDoc, SharedState};
 /// Set up the entire routing for the web service and create the OpenAPI
 /// documentation page
 pub async fn create_app(state: SharedState) -> Router {
-    let front_end = ServeDir::new("./dist")
-        .not_found_service(ServeFile::new("./dist/index.html"));
-
     Router::new()
         .nest("/api", controller::api_routes())
         .merge(SwaggerUi::new("/swagger").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(setup_cors())
         .with_state(state)
-        .fallback_service(front_end)
 }
 
 /// Creates a new [`CorsLayer`] to allow external origins making a call

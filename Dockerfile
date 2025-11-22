@@ -10,27 +10,10 @@ RUN apt-get update && apt-get install -y libssl-dev libpq-dev pkg-config
 WORKDIR /bonk-inc-backend
 
 # copy backend project files to the working directory.
-COPY ./backend/ .
+COPY ./ .
 
 # build the backend to a executable.
 RUN cargo build --target x86_64-unknown-linux-gnu --release -p babs-server
-
-#####################################################################
-## Build Front-end
-####################################################################
-FROM node:lts-bookworm-slim as frontend-build
-
-# set the working directory.
-WORKDIR /bonk-inc-backend
-
-# copy front-end project files to the working directory.
-COPY ./frontend/ .
-
-# download the required dependencies vue app.
-RUN npm install
-
-# build the front-end vue project.
-RUN npm run build
 
 #####################################################################
 ## Final image
@@ -49,7 +32,6 @@ WORKDIR /bonk-inc-backend
 
 # Copy our build
 COPY --from=backend-build /bonk-inc-backend/target/x86_64-unknown-linux-gnu/release/babs-server ./
-COPY --from=frontend-build /bonk-inc-backend/dist/ ./dist/
 
 # create appuser
 ENV USER=bonk-inc-backend
