@@ -10,7 +10,7 @@ use crate::{
     schema::user::{self, dsl::*},
 };
 
-#[derive(Serialize, Associations, Identifiable, Queryable, Selectable, ToSchema)]
+#[derive(Serialize, Associations, Identifiable, Queryable, Selectable)]
 #[diesel(table_name = user)]
 #[diesel(belongs_to(Game))]
 pub struct User {
@@ -21,11 +21,30 @@ pub struct User {
     pub updated_at: Option<NaiveDateTime>,
 }
 
+#[derive(Serialize, ToSchema)]
+pub struct UserDto {
+    pub id: Uuid,
+    pub name: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
+}
+
 #[derive(Insertable, AsChangeset, Deserialize, ToSchema)]
 #[diesel(table_name = user)]
-pub struct UserForm {
+pub struct UserFormDto {
     pub name: String,
     pub game_id: Uuid,
+}
+
+impl Into<UserDto> for User {
+    fn into(self) -> UserDto {
+        UserDto {
+            id: self.id,
+            name: self.name,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        }
+    }
 }
 
 impl User {
@@ -53,7 +72,7 @@ impl User {
     /// 
     /// Errors
     /// - If one of the fields contain invalid data.
-    pub fn insert(data: UserForm, conn: &mut Connection) -> QueryResult<User> {
+    pub fn insert(data: UserFormDto, conn: &mut Connection) -> QueryResult<User> {
         diesel::insert_into(user)
             .values(&data)
             .get_result::<User>(conn)
@@ -64,7 +83,7 @@ impl User {
     /// Errors
     /// - If no user is found with the given id.
     /// - If one of the fields contain invalid data.
-    pub fn update(user_id: Uuid, data: UserForm, conn: &mut Connection) -> QueryResult<User> {
+    pub fn update(user_id: Uuid, data: UserFormDto, conn: &mut Connection) -> QueryResult<User> {
         diesel::update(user)
             .filter(id.eq(user_id))
             .set(data)

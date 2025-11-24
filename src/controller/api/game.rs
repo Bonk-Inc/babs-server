@@ -7,7 +7,7 @@ use utoipa::{OpenApi, ToSchema};
 use uuid::Uuid;
 
 use crate::{
-    models::game::{Game, GameDTO},
+    models::game::{GameDto, GameFormDto},
     response::{ErrorResponse, ResponseBody},
     service::game_service,
     SharedState,
@@ -16,7 +16,7 @@ use crate::{
 #[derive(OpenApi)]
 #[openapi(
     paths(index, show, store, update, destroy),
-    components(schemas(Game, GameDTO, GameResponseBody, GamesResponseBody))
+    components(schemas(GameDto, GameFormDto, GameResponseBody, GamesResponseBody))
 )]
 pub struct GameApi;
 
@@ -26,7 +26,7 @@ pub struct GameApi;
 pub struct GameResponseBody {
     pub message: String,
     pub status: String,
-    pub data: Game,
+    pub data: GameDto,
 }
 
 /// The structure of the response body where there are multiple games returned. This struct is primarily used for
@@ -35,7 +35,7 @@ pub struct GameResponseBody {
 pub struct GamesResponseBody {
     pub message: String,
     pub status: String,
-    pub data: Vec<Game>,
+    pub data: Vec<GameDto>,
 }
 
 #[utoipa::path(
@@ -43,17 +43,24 @@ pub struct GamesResponseBody {
     path = "",
     tag = "Game",
     operation_id = "game_index",
+    description = "Returns all the registered Games",
     responses(
         (status = StatusCode::OK, description = "Games fetched successfully", body = GamesResponseBody)
     )
 )]
 pub async fn index(
     State(app_state): State<SharedState>,
-) -> Result<ResponseBody<Vec<Game>>, ErrorResponse> {
+) -> Result<ResponseBody<Vec<GameDto>>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
     match game_service::find_all(pool) {
-        Ok(games) => Ok(ResponseBody::ok("Games fetched", games)),
+        Ok(games) => {
+            let body = games.into_iter()
+                .map(|game| game.into())
+                .collect::<Vec<GameDto>>();
+
+            Ok(ResponseBody::ok("Games fetched", body))
+        },
         Err(err) => Err(err),
     }
 }
@@ -63,9 +70,11 @@ pub async fn index(
     path = "/{id}",
     tag = "Game",
     operation_id = "game_show",
+    description = "Gets a Game with the given id",
     params(
         ("id", Path, description = "Unique id of a Game")
     ),
+    description = "Returns the Game with the given id",
     responses(
         (status = StatusCode::OK, description = "Gam fetched successfully", body = GameResponseBody),
         (status = StatusCode::NOT_FOUND, description = "No game found by id", body = ErrorResponse)
@@ -74,11 +83,11 @@ pub async fn index(
 pub async fn show(
     State(app_state): State<SharedState>,
     Path(id): Path<Uuid>,
-) -> Result<ResponseBody<Game>, ErrorResponse> {
+) -> Result<ResponseBody<GameDto>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
     match game_service::find_by_id(id, pool) {
-        Ok(game) => Ok(ResponseBody::ok("Game fetched", game)),
+        Ok(game) => Ok(ResponseBody::ok("Game fetched", game.into())),
         Err(err) => Err(err),
     }
 }
@@ -88,7 +97,8 @@ pub async fn show(
     path = "",
     tag = "Game",
     operation_id = "game_store",
-    request_body = GameDTO,
+    request_body = GameFormDto,
+    description = "Creates a new Game",
     responses(
         (status = StatusCode::CREATED, description = "Game created successfully", body = GameResponseBody),
         (status = StatusCode::BAD_REQUEST, description = "Invalid input", body = ErrorResponse)
@@ -96,12 +106,12 @@ pub async fn show(
 )]
 pub async fn store(
     State(app_state): State<SharedState>,
-    Json(new_game): Json<GameDTO>,
-) -> Result<ResponseBody<Game>, ErrorResponse> {
+    Json(new_game): Json<GameFormDto>,
+) -> Result<ResponseBody<GameDto>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
     match game_service::insert(new_game, pool) {
-        Ok(game) => Ok(ResponseBody::created("Game created", game)),
+        Ok(game) => Ok(ResponseBody::created("Game created", game.into())),
         Err(err) => Err(err),
     }
 }
@@ -111,7 +121,8 @@ pub async fn store(
     path = "/{id}",
     tag = "Game",
     operation_id = "game_update",
-    request_body = GameDTO,
+    request_body = GameFormDto,
+    description = "Updates the Game with the given id",
     params(
         ("id", Path, description = "Unique id of a Game")
     ),
@@ -124,12 +135,12 @@ pub async fn store(
 pub async fn update(
     State(app_state): State<SharedState>,
     Path(id): Path<Uuid>,
-    Json(updated_game): Json<GameDTO>,
-) -> Result<ResponseBody<Game>, ErrorResponse> {
+    Json(updated_game): Json<GameFormDto>,
+) -> Result<ResponseBody<GameDto>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
     match game_service::update(id, updated_game, pool) {
-        Ok(game) => Ok(ResponseBody::ok("Game updated", game)),
+        Ok(game) => Ok(ResponseBody::ok("Game updated", game.into())),
         Err(err) => Err(err),
     }
 }
@@ -139,6 +150,7 @@ pub async fn update(
     path = "/{id}",
     tag = "Game",
     operation_id = "game_destroy",
+    description = "Deletes the Game with the given id",
     params(
         ("id", Path, description = "Unique id of a Game")
     ),

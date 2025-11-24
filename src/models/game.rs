@@ -9,7 +9,7 @@ use crate::{
     schema::game::{self, dsl::*},
 };
 
-#[derive(Queryable, Serialize, Identifiable, Deserialize, Default, ToSchema)]
+#[derive(Queryable, Identifiable, Default, Selectable)]
 #[diesel(table_name = game)]
 pub struct Game {
     pub id: Uuid,
@@ -18,10 +18,29 @@ pub struct Game {
     pub updated_at: Option<NaiveDateTime>,
 }
 
-#[derive(Insertable, AsChangeset, Serialize, Deserialize, ToSchema)]
-#[diesel(table_name = game)]
-pub struct GameDTO {
+#[derive(Serialize, ToSchema)]
+pub struct GameDto {
+    pub id: Uuid,
     pub name: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
+}
+
+#[derive(Insertable, AsChangeset, Deserialize, ToSchema)]
+#[diesel(table_name = game)]
+pub struct GameFormDto {
+    pub name: String,
+}
+
+impl Into<GameDto> for Game {
+    fn into(self) -> GameDto {
+        GameDto {
+            id: self.id,
+            name: self.name,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        }
+    }
 }
 
 impl Game {
@@ -42,7 +61,7 @@ impl Game {
     /// 
     /// Errors
     /// - If one of the fields contain invalid data.
-    pub fn insert(data: GameDTO, conn: &mut Connection) -> QueryResult<Game> {
+    pub fn insert(data: GameFormDto, conn: &mut Connection) -> QueryResult<Game> {
         diesel::insert_into(game)
             .values(&data)
             .get_result::<Game>(conn)
@@ -53,7 +72,7 @@ impl Game {
     /// Errors
     /// - If no game is found with the given id.
     /// - If one of the fields contain invalid data.
-    pub fn update(model_id: Uuid, data: GameDTO, conn: &mut Connection) -> QueryResult<Game> {
+    pub fn update(model_id: Uuid, data: GameFormDto, conn: &mut Connection) -> QueryResult<Game> {
         diesel::update(game)
             .filter(id.eq(model_id))
             .set(data)

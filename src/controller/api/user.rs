@@ -7,7 +7,7 @@ use utoipa::{OpenApi, ToSchema};
 use uuid::Uuid;
 
 use crate::{
-    models::user::{User, UserForm},
+    models::user::{UserDto, UserFormDto},
     response::{ErrorResponse, ResponseBody},
     service::user_service,
     SharedState,
@@ -16,7 +16,7 @@ use crate::{
 #[derive(OpenApi)]
 #[openapi(
     paths(index, store, update, destroy),
-    components(schemas(User, UserForm, UserResponseBody, UsersResponseBody))
+    components(schemas(UserDto, UserFormDto, UserResponseBody, UsersResponseBody))
 )]
 pub struct UserApi;
 
@@ -26,7 +26,7 @@ pub struct UserApi;
 pub struct UsersResponseBody {
     pub message: String,
     pub status: String,
-    pub data: User,
+    pub data: UserDto,
 }
 
 /// The structure of the response body where there are multiple users returned. This struct is primarily used for
@@ -35,7 +35,7 @@ pub struct UsersResponseBody {
 pub struct UserResponseBody {
     pub message: String,
     pub status: String,
-    pub data: Vec<User>,
+    pub data: Vec<UserDto>,
 }
 
 #[utoipa::path(
@@ -53,7 +53,7 @@ pub struct UserResponseBody {
 pub async fn index(
     State(app_state): State<SharedState>,
     Path(game_id): Path<Uuid>,
-) -> Result<ResponseBody<Vec<User>>, ErrorResponse> {
+) -> Result<ResponseBody<Vec<UserDto>>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
     match user_service::find_by_game(game_id, pool) {
@@ -67,7 +67,7 @@ pub async fn index(
     path = "",
     tag = "User",
     operation_id = "user_store",
-    request_body = UserForm,
+    request_body = UserFormDto,
     responses(
         (status = StatusCode::CREATED, description = "New user created", body = UsersResponseBody),
         (status = StatusCode::BAD_REQUEST, description = "Invalid input", body = ErrorResponse)
@@ -75,8 +75,8 @@ pub async fn index(
 )]
 pub async fn store(
     State(app_state): State<SharedState>,
-    Json(new_user): Json<UserForm>,
-) -> Result<ResponseBody<User>, ErrorResponse> {
+    Json(new_user): Json<UserFormDto>,
+) -> Result<ResponseBody<UserDto>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
     match user_service::insert(new_user, pool) {
@@ -90,7 +90,7 @@ pub async fn store(
     path = "/{id}",
     tag = "User",
     operation_id = "user_update",
-    request_body = UserForm,
+    request_body = UserFormDto,
     params(
         ("id", Path, description = "Unique id of a user"),
     ),
@@ -103,12 +103,12 @@ pub async fn store(
 pub async fn update(
     State(app_state): State<SharedState>,
     Path(id): Path<Uuid>,
-    Json(updated_user): Json<UserForm>,
-) -> Result<ResponseBody<User>, ErrorResponse> {
+    Json(updated_user): Json<UserFormDto>,
+) -> Result<ResponseBody<UserDto>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
     match user_service::update(id, updated_user, pool) {
-        Ok(level) => Ok(ResponseBody::ok("User updated", level)),
+        Ok(user) => Ok(ResponseBody::ok("User updated", user)),
         Err(error) => Err(error),
     }
 }

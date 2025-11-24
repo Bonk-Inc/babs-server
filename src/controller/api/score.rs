@@ -10,7 +10,7 @@ use utoipa::{OpenApi, ToSchema};
 use uuid::Uuid;
 
 use crate::{
-    models::score::{ScoreDto, ScoreForm},
+    models::score::{ScoreDto, ScoreFormDto},
     response::{ErrorResponse, ResponseBody},
     service::score_service,
     SharedState,
@@ -19,7 +19,7 @@ use crate::{
 #[derive(OpenApi)]
 #[openapi(
     paths(index, show, level_scores, user_scores, store, update, destroy),
-    components(schemas(ScoreDto, ScoreForm, ScoreResponseBody, ScoresResponseBody))
+    components(schemas(ScoreDto, ScoreFormDto, ScoreResponseBody, ScoresResponseBody))
 )]
 pub struct ScoreApi;
 
@@ -166,7 +166,7 @@ pub async fn user_scores(
     path = "",
     tag = "Score",
     operation_id = "score_store",
-    request_body = ScoreForm,
+    request_body = ScoreFormDto,
     responses(
         (status = StatusCode::CREATED, description = "Score created successfully", body = ScoreResponseBody),
         (status = StatusCode::BAD_REQUEST, description = "Invalid input", body = ErrorResponse)
@@ -174,7 +174,7 @@ pub async fn user_scores(
 )]
 pub async fn store(
     State(app_state): State<SharedState>,
-    Json(new_score): Json<ScoreForm>,
+    Json(new_score): Json<ScoreFormDto>,
 ) -> Result<ResponseBody<ScoreDto>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
@@ -189,7 +189,7 @@ pub async fn store(
     path = "/{id}",
     tag = "Score",
     operation_id = "score_update",
-    request_body = ScoreForm,
+    request_body = ScoreFormDto,
     params(
         ("id", Path, description = "Unique id of a Score")
     ),
@@ -202,7 +202,7 @@ pub async fn store(
 pub async fn update(
     State(app_state): State<SharedState>,
     Path(id): Path<Uuid>,
-    Json(updated_score): Json<ScoreForm>,
+    Json(updated_score): Json<ScoreFormDto>,
 ) -> Result<ResponseBody<ScoreDto>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 

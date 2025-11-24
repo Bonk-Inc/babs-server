@@ -10,7 +10,7 @@ use crate::{
     schema::level::{self, dsl::*},
 };
 
-#[derive(Serialize, Associations, Identifiable, Queryable, Selectable, ToSchema)]
+#[derive(Serialize, Associations, Identifiable, Queryable, Selectable)]
 #[diesel(table_name = level)]
 #[diesel(belongs_to(Game))]
 pub struct Level {
@@ -21,11 +21,30 @@ pub struct Level {
     pub updated_at: Option<NaiveDateTime>,
 }
 
+#[derive(Serialize, ToSchema)]
+pub struct LevelDto {
+    pub id: Uuid,
+    pub name: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
+}
+
 #[derive(Insertable, AsChangeset, Serialize, Deserialize, ToSchema)]
 #[diesel(table_name = level)]
-pub struct LevelForm {
+pub struct LevelFormDto {
     pub name: String,
     pub game_id: Uuid,
+}
+
+impl Into<LevelDto> for Level {
+    fn into(self) -> LevelDto {
+        LevelDto {
+            id: self.id,
+            name: self.name,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        }
+    }
 }
 
 impl Level {
@@ -38,22 +57,22 @@ impl Level {
     /// 
     /// # Errors
     /// - If no level is found with the given id.
-    pub fn find_by_id(level_id: Uuid, conn: &mut Connection) -> QueryResult<Level> {
-        level.find(level_id).get_result::<Level>(conn)
+    pub fn find_by_id(level_id: Uuid, conn: &mut Connection) -> QueryResult<Level> { 
+        level.find(level_id)
+            .get_result::<Level>(conn)
     }
 
     /// Fetches levels related to the given game from the database.
     pub fn find_by_game(game: &Game, conn: &mut Connection) -> QueryResult<Vec<Level>> {
         Level::belonging_to(game)
-            .select(Level::as_select())
-            .load(conn)
+            .load::<Level>(conn)
     }    
 
     /// Adds a new level to the database.
     /// 
     /// Errors
     /// - If one of the fields contain invalid data.
-    pub fn insert(data: LevelForm, conn: &mut Connection) -> QueryResult<Level> {
+    pub fn insert(data: LevelFormDto, conn: &mut Connection) -> QueryResult<Level> {
         diesel::insert_into(level)
             .values(&data)
             .get_result::<Level>(conn)
@@ -64,7 +83,7 @@ impl Level {
     /// Errors
     /// - If no level is found with the given id.
     /// - If one of the fields contain invalid data.
-    pub fn update(level_id: Uuid, data: LevelForm, conn: &mut Connection) -> QueryResult<Level> {
+    pub fn update(level_id: Uuid, data: LevelFormDto, conn: &mut Connection) -> QueryResult<Level> {
         diesel::update(level)
             .filter(id.eq(level_id))
             .set(data)

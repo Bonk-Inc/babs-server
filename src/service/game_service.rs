@@ -3,8 +3,8 @@ use uuid::Uuid;
 use crate::{
     config::db::Pool,
     models::{
-        game::{Game, GameDTO},
-        level::{Level, LevelForm},
+        game::{Game, GameDto, GameFormDto},
+        level::{Level, LevelFormDto},
     },
     response::{ErrorResponse, ResponseBody},
 };
@@ -16,9 +16,15 @@ use crate::{
 /// This function fails if:
 /// - an error occurred during execution.
 ///
-pub fn find_all(pool: &Pool) -> Result<Vec<Game>, ErrorResponse> {
+pub fn find_all(pool: &Pool) -> Result<Vec<GameDto>, ErrorResponse> {
     match Game::find_all(&mut pool.get().unwrap()) {
-        Ok(games) => Ok(games),
+        Ok(games) => {
+            let result = games.into_iter()
+                .map(|g| g.into())
+                .collect::<Vec<GameDto>>();
+
+            Ok(result)
+        },
         Err(_) => Err(ResponseBody::internal_error("Cannot fetch games")),
     }
 }
@@ -31,9 +37,9 @@ pub fn find_all(pool: &Pool) -> Result<Vec<Game>, ErrorResponse> {
 /// - an error occurred during execution.
 /// - could not find game with given id.
 ///
-pub fn find_by_id(id: Uuid, pool: &Pool) -> Result<Game, ErrorResponse> {
+pub fn find_by_id(id: Uuid, pool: &Pool) -> Result<GameDto, ErrorResponse> {
     match Game::find_by_id(id, &mut pool.get().unwrap()) {
-        Ok(game) => Ok(game),
+        Ok(game) => Ok(game.into()),
         Err(_) => Err(ResponseBody::not_found_error(&format!(
             "Game with id '{}' not found",
             id.to_string()
@@ -49,16 +55,16 @@ pub fn find_by_id(id: Uuid, pool: &Pool) -> Result<Game, ErrorResponse> {
 /// This function fails if:
 /// - an error occurred during execution.
 ///
-pub fn insert(new_game: GameDTO, pool: &Pool) -> Result<Game, ErrorResponse> {
+pub fn insert(new_game: GameFormDto, pool: &Pool) -> Result<GameDto, ErrorResponse> {
     match Game::insert(new_game, &mut pool.get().unwrap()) {
         Ok(game) => {
-            let level = LevelForm {
+            let level = LevelFormDto {
                 name: "Level 1".to_owned(),
                 game_id: game.id,
             };
 
             match Level::insert(level, &mut pool.get().unwrap()) {
-                Ok(_) => Ok(game),
+                Ok(_) => Ok(game.into()),
                 Err(_) => Err(ResponseBody::internal_error(
                     "Could not add level to newly created game",
                 )),
@@ -78,8 +84,8 @@ pub fn insert(new_game: GameDTO, pool: &Pool) -> Result<Game, ErrorResponse> {
 /// - an error occurred during execution.
 /// - no game could be found with the given id.
 ///
-pub fn update(id: Uuid, updated_game: GameDTO, pool: &Pool) -> Result<Game, ErrorResponse> {
-    if !game_exisits(id, pool) {
+pub fn update(id: Uuid, updated_game: GameFormDto, pool: &Pool) -> Result<GameDto, ErrorResponse> {
+    if !game_exists(id, pool) {
         return Err(ResponseBody::not_found_error(&format!(
             "Game with id '{}' not found",
             id.to_string()
@@ -87,7 +93,7 @@ pub fn update(id: Uuid, updated_game: GameDTO, pool: &Pool) -> Result<Game, Erro
     }
 
     match Game::update(id, updated_game, &mut pool.get().unwrap()) {
-        Ok(game) => Ok(game),
+        Ok(game) => Ok(game.into()),
         Err(_) => Err(ResponseBody::internal_error("Could not update game")),
     }
 }
@@ -101,7 +107,7 @@ pub fn update(id: Uuid, updated_game: GameDTO, pool: &Pool) -> Result<Game, Erro
 /// - no game could be found with the given id.
 ///
 pub fn delete(id: Uuid, pool: &Pool) -> Result<usize, ErrorResponse> {
-    if !game_exisits(id, pool) {
+    if !game_exists(id, pool) {
         return Err(ResponseBody::not_found_error(&format!(
             "Game with id '{}' not found",
             id.to_string()
@@ -117,7 +123,7 @@ pub fn delete(id: Uuid, pool: &Pool) -> Result<usize, ErrorResponse> {
 }
 
 /// Checks if a game exists in the database with the given id.
-pub fn game_exisits(id: Uuid, pool: &Pool) -> bool {
+pub fn game_exists(id: Uuid, pool: &Pool) -> bool {
     let game = Game::find_by_id(id, &mut pool.get().unwrap());
 
     game.is_ok()

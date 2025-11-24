@@ -1,15 +1,15 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use utoipa::ToSchema;
 
-#[derive(Serialize, Deserialize, Default, ToSchema)]
-pub struct GlobalStats {
+#[derive(Serialize, Default, ToSchema)]
+pub struct GlobalStatsDto {
     pub games: i64,
     pub scores: i64,
     pub users: i64
 }
 
-#[derive(Serialize, Deserialize, Default, ToSchema)]
-pub struct GameStats {
+#[derive(Serialize, Default, ToSchema)]
+pub struct GameStatsDto {
     pub scores: i64,
     pub users: i64
 }

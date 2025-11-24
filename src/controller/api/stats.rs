@@ -2,7 +2,7 @@ use axum::extract::{Path, State};
 use uuid::Uuid;
 
 use crate::{
-    models::stats::{GameStats, GlobalStats},
+    models::stats::{GameStatsDto, GlobalStatsDto},
     response::{ErrorResponse, ResponseBody},
     service::stats_service,
     SharedState,
@@ -10,13 +10,13 @@ use crate::{
 
 pub async fn all(
     State(app_state): State<SharedState>,
-) -> Result<ResponseBody<GlobalStats>, ErrorResponse> {
+) -> Result<ResponseBody<GlobalStatsDto>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
     let game_count = stats_service::count_games(&pool)?;
     let score_count = stats_service::count_scores(None, &pool)?;
     let user_count = stats_service::count_users(None, &pool)?;
 
-    let stats = GlobalStats {
+    let stats = GlobalStatsDto {
         games: game_count,
         scores: score_count,
         users: user_count,
@@ -28,12 +28,12 @@ pub async fn all(
 pub async fn game_stats(
     Path(game_id): Path<Uuid>,
     State(app_state): State<SharedState>,
-) -> Result<ResponseBody<GameStats>, ErrorResponse> {
+) -> Result<ResponseBody<GameStatsDto>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
     let score_count = stats_service::count_scores(Some(game_id), pool)?;
     let user_count = stats_service::count_users(Some(game_id), pool)?;
 
-    let game_stats = GameStats {
+    let game_stats = GameStatsDto {
         scores: score_count,
         users: user_count,
     };

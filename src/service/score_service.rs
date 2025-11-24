@@ -4,11 +4,14 @@ use uuid::Uuid;
 
 use crate::{
     config::db::Pool,
-    models::score::{Score, ScoreDto, ScoreForm},
+    models::{
+        game::Game,
+        level::Level,
+        score::{Score, ScoreDto, ScoreFormDto},
+        user::User,
+    },
     response::{ErrorResponse, ResponseBody},
 };
-
-use super::{game_service, level_service, user_service};
 
 /// Queries the database and fetches all the registered scores from a game.
 ///
@@ -19,8 +22,7 @@ use super::{game_service, level_service, user_service};
 /// - an error occurred during execution.
 ///
 pub fn find_all(game_id: Uuid, pool: &Pool) -> Result<Vec<ScoreDto>, ErrorResponse> {
-    let game: Result<crate::models::game::Game, ErrorResponse> =
-        game_service::find_by_id(game_id, pool);
+    let game = Game::find_by_id(game_id, &mut pool.get().unwrap());
     if game.is_err() {
         return Err(ResponseBody::not_found_error(&format!(
             "Game with id '{}' not found",
@@ -28,8 +30,14 @@ pub fn find_all(game_id: Uuid, pool: &Pool) -> Result<Vec<ScoreDto>, ErrorRespon
         )));
     }
 
-    match Score::find_all(&game?, &mut pool.get().unwrap()) {
-        Ok(scores) => Ok(scores),
+    match Score::find_all(&game.unwrap(), &mut pool.get().unwrap()) {
+        Ok(scores) => {
+            let result = scores.into_iter()
+                .map(|score| score.into())
+                .collect::<Vec<ScoreDto>>();
+            
+            Ok(result)
+        },
         Err(_) => Err(ErrorResponse::internal_error(
             "Error while fetching scores occurred",
         )),
@@ -45,7 +53,7 @@ pub fn find_all(game_id: Uuid, pool: &Pool) -> Result<Vec<ScoreDto>, ErrorRespon
 ///
 pub fn find_by_id(id: Uuid, pool: &Pool) -> Result<ScoreDto, ErrorResponse> {
     match Score::find_by_id(id, &mut pool.get().unwrap()) {
-        Ok(score) => Ok(score),
+        Ok(score) => Ok(score.into()),
         Err(_) => Err(ResponseBody::not_found_error(&format!(
             "Score with id '{}' not found",
             id.to_string()
@@ -66,7 +74,7 @@ pub fn find_by_level(
     include_hidden: bool,
     pool: &Pool,
 ) -> Result<Vec<ScoreDto>, ErrorResponse> {
-    let level = level_service::find_by_id(level_id, pool);
+    let level = Level::find_by_id(level_id, &mut pool.get().unwrap());
     if level.is_err() {
         return Err(ResponseBody::not_found_error(&format!(
             "Level with id '{}' not found",
@@ -74,10 +82,16 @@ pub fn find_by_level(
         )));
     }
 
-    match Score::find_by_level(&level?, include_hidden, &mut pool.get().unwrap()) {
-        Ok(score) => Ok(score),
+    match Score::find_by_level(&level.unwrap(), include_hidden, &mut pool.get().unwrap()) {
+        Ok(score) => {
+            let result = score.into_iter()
+                .map(|score| score.into())
+                .collect::<Vec<ScoreDto>>();
+            
+            Ok(result)
+        },
         Err(_) => Err(ResponseBody::internal_error(
-            "An error occured when trying to fetch scores",
+            "An error occurred when trying to fetch scores",
         )),
     }
 }
@@ -95,7 +109,7 @@ pub fn find_by_user(
     include_hidden: bool,
     pool: &Pool,
 ) -> Result<Vec<ScoreDto>, ErrorResponse> {
-    let user = user_service::find_by_id(user_id, pool);
+    let user = User::find_by_id(user_id, &mut pool.get().unwrap());
     if user.is_err() {
         return Err(ResponseBody::not_found_error(&format!(
             "User with id '{}' not found",
@@ -103,8 +117,14 @@ pub fn find_by_user(
         )));
     }
 
-    match Score::find_by_user(&user?, include_hidden, &mut pool.get().unwrap()) {
-        Ok(score) => Ok(score),
+    match Score::find_by_user(&user.unwrap(), include_hidden, &mut pool.get().unwrap()) {
+        Ok(scores) => {
+            let result = scores.into_iter()
+                .map(|score| score.into())
+                .collect::<Vec<ScoreDto>>();
+            
+            Ok(result)
+        },
         Err(_) => Err(ResponseBody::internal_error(
             "An error occurred when trying to fetch scores",
         )),
@@ -118,9 +138,9 @@ pub fn find_by_user(
 /// This function fails if:
 /// - an error occurred during execution.
 ///
-pub fn insert(new_score: ScoreForm, pool: &Pool) -> Result<ScoreDto, ErrorResponse> {
+pub fn insert(new_score: ScoreFormDto, pool: &Pool) -> Result<ScoreDto, ErrorResponse> {
     match Score::insert(new_score, &mut pool.get().unwrap()) {
-        Ok(score) => Ok(score),
+        Ok(score) => Ok(score.into()),
         Err(err) => Err(ResponseBody::internal_error(&format!(
             "Error saving new score, {}",
             err
@@ -134,9 +154,9 @@ pub fn insert(new_score: ScoreForm, pool: &Pool) -> Result<ScoreDto, ErrorRespon
 ///
 /// This function fails if:
 /// - an error occurred during execution.
-/// - no score could be find with the given id.
+/// - no score could be found with the given id.
 ///
-pub fn update(id: Uuid, updated_score: ScoreForm, pool: &Pool) -> Result<ScoreDto, ErrorResponse> {
+pub fn update(id: Uuid, updated_score: ScoreFormDto, pool: &Pool) -> Result<ScoreDto, ErrorResponse> {
     if !score_exists(id, pool) {
         return Err(ResponseBody::not_found_error(&format!(
             "Score with id '{}' not found",
@@ -145,7 +165,7 @@ pub fn update(id: Uuid, updated_score: ScoreForm, pool: &Pool) -> Result<ScoreDt
     }
 
     match Score::update(id, updated_score, &mut pool.get().unwrap()) {
-        Ok(score) => Ok(score),
+        Ok(score) => Ok(score.into()),
         Err(_) => Err(ResponseBody::internal_error("Error while updating score")),
     }
 }

@@ -7,7 +7,7 @@ use utoipa::{OpenApi, ToSchema};
 use uuid::Uuid;
 
 use crate::{
-    models::level::{Level, LevelForm},
+    models::level::{LevelDto, LevelFormDto},
     response::{ErrorResponse, ResponseBody},
     service::level_service,
     SharedState,
@@ -16,7 +16,7 @@ use crate::{
 #[derive(OpenApi)]
 #[openapi(
     paths(index, store, update, destroy),
-    components(schemas(Level, LevelForm, LevelResponseBody, LevelsResponseBody))
+    components(schemas(LevelDto, LevelFormDto, LevelResponseBody, LevelsResponseBody))
 )]
 pub struct LevelApi;
 
@@ -26,7 +26,7 @@ pub struct LevelApi;
 pub struct LevelResponseBody {
     pub message: String,
     pub status: String,
-    pub data: Level,
+    pub data: LevelDto,
 }
 
 /// The structure of the response body where there are multiple levels returned. This struct is primarily used for
@@ -35,7 +35,7 @@ pub struct LevelResponseBody {
 pub struct LevelsResponseBody {
     pub message: String,
     pub status: String,
-    pub data: Vec<Level>,
+    pub data: Vec<LevelDto>,
 }
 
 #[utoipa::path(
@@ -43,6 +43,7 @@ pub struct LevelsResponseBody {
     path = "/game/{gameId}",
     tag = "Level",
     operation_id = "level_games",
+    description = "Returns all the registered Level in the given Game",
     params(
         ("gameId", Path, description = "Unique id of a Game"),
     ),
@@ -54,11 +55,17 @@ pub struct LevelsResponseBody {
 pub async fn index(
     State(app_state): State<SharedState>,
     Path(game_id): Path<Uuid>,
-) -> Result<ResponseBody<Vec<Level>>, ErrorResponse> {
+) -> Result<ResponseBody<Vec<LevelDto>>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
     match level_service::find_by_game(game_id, pool) {
-        Ok(levels) => Ok(ResponseBody::ok("Levels fetched", levels)),
+        Ok(levels) => {
+            let body = levels.into_iter()
+                .map(|level| level.into())
+                .collect();
+            
+            Ok(ResponseBody::ok("Levels fetched", body))
+        },
         Err(err) => Err(err),
     }
 }
@@ -68,7 +75,8 @@ pub async fn index(
     path = "",
     tag = "Level",
     operation_id = "level_store",
-    request_body = LevelForm,
+    description = "Adds a new Level to the given Game",
+    request_body = LevelFormDto,
     responses(
         (status = StatusCode::CREATED, description = "Level created successfully", body = LevelsResponseBody),
         (status = StatusCode::BAD_REQUEST, description = "Invalid input", body = ErrorResponse)
@@ -76,8 +84,8 @@ pub async fn index(
 )]
 pub async fn store(
     State(app_state): State<SharedState>,
-    Json(new_level): Json<LevelForm>,
-) -> Result<ResponseBody<Level>, ErrorResponse> {
+    Json(new_level): Json<LevelFormDto>,
+) -> Result<ResponseBody<LevelDto>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
     match level_service::insert(new_level, pool) {
@@ -91,7 +99,8 @@ pub async fn store(
     path = "/{id}",
     tag = "Level",
     operation_id = "level_update",
-    request_body = LevelForm,
+    description = "Updates a new Level with the given id",
+    request_body = LevelFormDto,
     params(
         ("id", Path, description = "Unique id of a Level"),
     ),
@@ -104,8 +113,8 @@ pub async fn store(
 pub async fn update(
     State(app_state): State<SharedState>,
     Path(id): Path<Uuid>,
-    Json(updated_level): Json<LevelForm>,
-) -> Result<ResponseBody<Level>, ErrorResponse> {
+    Json(updated_level): Json<LevelFormDto>,
+) -> Result<ResponseBody<LevelDto>, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
     match level_service::update(id, updated_level, pool) {
@@ -119,6 +128,7 @@ pub async fn update(
     path = "/{id}",
     tag = "Level",
     operation_id = "level_destroy",
+    description = "Deletes a new Level with the given id",
     params(
         ("id", Path, description = "Unique id of a Level"),
     ),

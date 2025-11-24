@@ -2,11 +2,12 @@ use uuid::Uuid;
 
 use crate::{
     config::db::Pool,
-    models::level::{Level, LevelForm},
+    models::{
+        game::Game,
+        level::{Level, LevelDto, LevelFormDto}
+    },
     response::{ErrorResponse, ResponseBody},
 };
-
-use super::game_service;
 
 /// Queries the database and fetches all the registered levels.
 ///
@@ -15,9 +16,15 @@ use super::game_service;
 /// This function fails if:
 /// - an error occurred during execution.
 ///
-pub fn find_all(pool: &Pool) -> Result<Vec<Level>, ErrorResponse> {
+pub fn find_all(pool: &Pool) -> Result<Vec<LevelDto>, ErrorResponse> {
     match Level::find_all(&mut pool.get().unwrap()) {
-        Ok(levels) => Ok(levels),
+        Ok(levels) => {
+            let result = levels.into_iter()
+                .map(|l| l.into())
+                .collect::<Vec<LevelDto>>();
+            
+            Ok(result)
+        },
         Err(_) => Err(ResponseBody::internal_error("Cannot fetch levels")),
     }
 }
@@ -30,9 +37,9 @@ pub fn find_all(pool: &Pool) -> Result<Vec<Level>, ErrorResponse> {
 /// - an error occurred during execution.
 /// - could not find level with given id.
 ///
-pub fn find_by_id(id: Uuid, pool: &Pool) -> Result<Level, ErrorResponse> {
+pub fn find_by_id(id: Uuid, pool: &Pool) -> Result<LevelDto, ErrorResponse> {
     match Level::find_by_id(id, &mut pool.get().unwrap()) {
-        Ok(level) => Ok(level),
+        Ok(level) => Ok(level.into()),
         Err(_) => Err(ResponseBody::not_found_error(&format!(
             "Level with id '{}' not found",
             id.to_string()
@@ -48,8 +55,8 @@ pub fn find_by_id(id: Uuid, pool: &Pool) -> Result<Level, ErrorResponse> {
 /// - could not find game with given id.
 /// - an error occurred during execution.
 ///
-pub fn find_by_game(game_id: Uuid, pool: &Pool) -> Result<Vec<Level>, ErrorResponse> {
-    let game = game_service::find_by_id(game_id, pool);
+pub fn find_by_game(game_id: Uuid, pool: &Pool) -> Result<Vec<LevelDto>, ErrorResponse> {
+    let game = Game::find_by_id(game_id, &mut pool.get().unwrap());
     if game.is_err() {
         return Err(ResponseBody::not_found_error(&format!(
             "Game with id '{}' not found",
@@ -57,8 +64,14 @@ pub fn find_by_game(game_id: Uuid, pool: &Pool) -> Result<Vec<Level>, ErrorRespo
         )));
     }
 
-    match Level::find_by_game(&game?, &mut pool.get().unwrap()) {
-        Ok(levels) => Ok(levels),
+    match Level::find_by_game(&game.unwrap(), &mut pool.get().unwrap()) {
+        Ok(levels) => {
+            let result = levels.into_iter()
+                .map(|l| l.into())
+                .collect::<Vec<LevelDto>>();
+            
+            Ok(result)
+        },
         Err(_) => Err(ResponseBody::internal_error(
             "Cannot add a new level in database",
         )),
@@ -72,9 +85,9 @@ pub fn find_by_game(game_id: Uuid, pool: &Pool) -> Result<Vec<Level>, ErrorRespo
 /// This function fails if:
 /// - an error occurred during execution.
 ///
-pub fn insert(new_level: LevelForm, pool: &Pool) -> Result<Level, ErrorResponse> {
+pub fn insert(new_level: LevelFormDto, pool: &Pool) -> Result<LevelDto, ErrorResponse> {
     match Level::insert(new_level, &mut pool.get().unwrap()) {
-        Ok(level) => Ok(level),
+        Ok(level) => Ok(level.into()),
         Err(_) => Err(ResponseBody::internal_error(
             "Cannot add a new level in database",
         )),
@@ -89,7 +102,7 @@ pub fn insert(new_level: LevelForm, pool: &Pool) -> Result<Level, ErrorResponse>
 /// - an error occurred during execution.
 /// - no level could be found with the given id.
 ///
-pub fn update(id: Uuid, updated_level: LevelForm, pool: &Pool) -> Result<Level, ErrorResponse> {
+pub fn update(id: Uuid, updated_level: LevelFormDto, pool: &Pool) -> Result<LevelDto, ErrorResponse> {
     if !level_exists(id, pool) {
         return Err(ResponseBody::not_found_error(&format!(
             "Level with id '{}' not found",
@@ -98,7 +111,7 @@ pub fn update(id: Uuid, updated_level: LevelForm, pool: &Pool) -> Result<Level, 
     }
 
     match Level::update(id, updated_level, &mut pool.get().unwrap()) {
-        Ok(level) => Ok(level),
+        Ok(level) => Ok(level.into()),
         Err(_) => Err(ResponseBody::internal_error("Could not update level")),
     }
 }

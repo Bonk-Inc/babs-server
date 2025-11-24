@@ -6,8 +6,6 @@ use crate::{
     response::{ErrorResponse, ResponseBody},
 };
 
-use super::game_service;
-
 /// Queries the database and counts the registered games.
 ///
 /// # Errors
@@ -36,7 +34,7 @@ pub fn count_games(pool: &Pool) -> Result<i64, ErrorResponse> {
 pub fn count_scores(game_id: Option<Uuid>, pool: &Pool) -> Result<i64, ErrorResponse> {
     let mut game: Option<Game> = None;
     if let Some(id) = game_id {
-        let fetched_game = game_service::find_by_id(id, pool);
+        let fetched_game = Game::find_by_id(id, &mut pool.get().unwrap());
         if fetched_game.is_err() {
             return Err(ResponseBody::not_found_error(&format!(
                 "Game with id '{}' not found",
@@ -44,7 +42,7 @@ pub fn count_scores(game_id: Option<Uuid>, pool: &Pool) -> Result<i64, ErrorResp
             )));
         }
 
-        game = Some(fetched_game?)
+        game = Some(fetched_game.unwrap());
     }
 
     match Score::count(&game, &mut pool.get().unwrap()) {
@@ -58,7 +56,7 @@ pub fn count_scores(game_id: Option<Uuid>, pool: &Pool) -> Result<i64, ErrorResp
 pub fn count_users(game_id: Option<Uuid>, pool: &Pool) -> Result<i64, ErrorResponse> {
     let mut game: Option<Game> = None;
     if let Some(id) = game_id {
-        let fetched_game = game_service::find_by_id(id, pool);
+        let fetched_game = Game::find_by_id(id, &mut pool.get().unwrap());
         if fetched_game.is_err() {
             return Err(ResponseBody::not_found_error(&format!(
                 "Game with id '{}' not found",
@@ -66,7 +64,7 @@ pub fn count_users(game_id: Option<Uuid>, pool: &Pool) -> Result<i64, ErrorRespo
             )));
         }
 
-        game = Some(fetched_game?)
+        game = Some(fetched_game.unwrap());
     }
 
     match User::count(&game, &mut pool.get().unwrap()) {

@@ -7,7 +7,7 @@ use axum::{
     },
     Router,
 };
-use tower_http::cors::{Any, CorsLayer};c
+use tower_http::cors::{Any, CorsLayer};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
