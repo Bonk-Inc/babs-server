@@ -43,6 +43,7 @@ pub struct UserResponseBody {
     path = "/game/{id}",
     tag = "User",
     operation_id = "user_index",
+    description = "Returns all the registered scores of the given User",
     params(
         ("id", Path, description = "Unique id of a game"),
     ),
@@ -68,6 +69,7 @@ pub async fn index(
     tag = "User",
     operation_id = "user_store",
     request_body = UserFormDto,
+    description = "Adds a new user to the given Game",
     responses(
         (status = StatusCode::CREATED, description = "New user created", body = UsersResponseBody),
         (status = StatusCode::BAD_REQUEST, description = "Invalid input", body = ErrorResponse)
@@ -91,6 +93,7 @@ pub async fn store(
     tag = "User",
     operation_id = "user_update",
     request_body = UserFormDto,
+    description = "Updates a user with the given id",
     params(
         ("id", Path, description = "Unique id of a user"),
     ),
@@ -118,6 +121,7 @@ pub async fn update(
     path = "/{id}",
     tag = "User",
     operation_id = "user_destroy",
+    description = "Deletes a user with the given id",
     params(
         ("id", Path, description = "Unique id of a user"),
     ),

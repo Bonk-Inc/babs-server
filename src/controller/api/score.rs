@@ -52,6 +52,7 @@ pub struct QueryParams {
     path = "/game/{gameId}",
     tag = "Score",
     operation_id = "score_index",
+    description = "Returns all the registered scores in the given Game",
     params(
         ("levelId", Path, description = "Unique id of the related Game"),
         ("hidden", Query, description = "If hidden scores should also be fetched")
@@ -77,6 +78,7 @@ pub async fn index(
     path = "/{id}",
     tag = "Score",
     operation_id = "score_show",
+    description = "Returns a scores with the given id",
     params(
         ("id", Path, description = "Unique id of a Score")
     ),
@@ -102,6 +104,7 @@ pub async fn show(
     path = "/level/{levelId}",
     tag = "Score",
     operation_id = "score_level_score",
+    description = "Returns all the registered scores of the given Level",
     params(
         ("levelId", Path, description = "Unique id of a Level"),
         ("hidden", Query, description = "If hidden scores should also be fetched")
@@ -134,6 +137,7 @@ pub async fn level_scores(
     path = "/user/{userId}",
     tag = "Score",
     operation_id = "score_user_score",
+    description = "Returns all the registered scores of the given User",
     params(
         ("userId", Path, description = "Unique id of a User"),
         ("hidden", Query, description = "If hidden scores should also be fetched")
@@ -167,6 +171,7 @@ pub async fn user_scores(
     tag = "Score",
     operation_id = "score_store",
     request_body = ScoreFormDto,
+    description = "Adds a new score to the given Level",
     responses(
         (status = StatusCode::CREATED, description = "Score created successfully", body = ScoreResponseBody),
         (status = StatusCode::BAD_REQUEST, description = "Invalid input", body = ErrorResponse)
@@ -190,6 +195,7 @@ pub async fn store(
     tag = "Score",
     operation_id = "score_update",
     request_body = ScoreFormDto,
+    description = "Updates a scores with the given id",
     params(
         ("id", Path, description = "Unique id of a Score")
     ),
@@ -217,6 +223,7 @@ pub async fn update(
     path = "/{id}",
     tag = "Score",
     operation_id = "score_destroy",
+    description = "Deletes a scores with the given id",
     params(
         ("id", Path, description = "Unique id(s) of a Score (comma seperated)")
     ),
