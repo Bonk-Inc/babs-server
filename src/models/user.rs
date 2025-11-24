@@ -89,7 +89,7 @@ impl User {
             .set(data)
             .get_result::<User>(conn)
     }
-
+    
     /// Deletes a user with the given id from the database.
     pub fn delete(user_id: Uuid, conn: &mut Connection) -> QueryResult<usize> {
         diesel::delete(user).filter(id.eq(user_id)).execute(conn)

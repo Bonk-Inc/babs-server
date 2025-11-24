@@ -7,7 +7,7 @@ use crate::{
     models::{
         game::Game,
         level::Level,
-        score::{Score, ScoreDto, ScoreFormDto},
+        score::{Score, ScoreDto, ScoreFormDto, ScoreUpdateVisibilityDto},
         user::User,
     },
     response::{ErrorResponse, ResponseBody},
@@ -165,6 +165,28 @@ pub fn update(id: Uuid, updated_score: ScoreFormDto, pool: &Pool) -> Result<Scor
     }
 
     match Score::update(id, updated_score, &mut pool.get().unwrap()) {
+        Ok(score) => Ok(score.into()),
+        Err(_) => Err(ResponseBody::internal_error("Error while updating score")),
+    }
+}
+
+/// Updates the visibility of a score with the given id in the database.
+///
+/// # Errors
+///
+/// This function fails if:
+/// - an error occurred during execution.
+/// - no score could be found with the given id.
+///
+pub fn set_visibility(id: Uuid, hidden: ScoreUpdateVisibilityDto, pool: &Pool) -> Result<ScoreDto, ErrorResponse> {
+    if !score_exists(id, pool) {
+        return Err(ResponseBody::not_found_error(&format!(
+            "Score with id '{}' not found",
+            id.to_string()
+        )));
+    }
+
+    match Score::set_visibility(id, hidden, &mut pool.get().unwrap()) {
         Ok(score) => Ok(score.into()),
         Err(_) => Err(ResponseBody::internal_error("Error while updating score")),
     }

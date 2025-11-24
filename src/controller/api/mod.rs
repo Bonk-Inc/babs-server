@@ -25,7 +25,7 @@ pub fn score_routes() -> Router<SharedState> {
     Router::new()
         .route("/", post(score::store))
         .route("/game/{gameId}", get(score::index))
-        .route("/{scoreId}", get(score::show).put(score::update).delete(score::destroy))
+        .route("/{scoreId}", get(score::show).put(score::update).patch(score::set_visibility).delete(score::destroy))
         .route("/level/{levelId}", get(score::level_scores))
         .route("/user/{userId}", get(score::user_scores))
 }

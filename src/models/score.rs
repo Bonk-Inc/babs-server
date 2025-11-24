@@ -36,6 +36,12 @@ pub struct ScoreFormDto {
     pub user_id: Option<Uuid>,
 }
 
+#[derive(Insertable, AsChangeset, Deserialize, ToSchema, Clone)]
+#[diesel(table_name = score)]
+pub struct ScoreUpdateVisibilityDto {
+    pub is_hidden: bool
+}
+
 #[derive(Serialize, ToSchema)]
 pub struct ScoreDto {
     pub id: Uuid,
@@ -171,6 +177,36 @@ impl Score {
         } else { None };
 
         Ok((score, Some(level), user).into())
+    }
+
+    /// Sets the visibility of a score with the given id in the database.
+    ///
+    /// Errors
+    /// - If no score is found with the given id.
+    /// - If one of the fields contain invalid data.
+    pub fn set_visibility(
+        score_id: Uuid,
+        updated_visibility: ScoreUpdateVisibilityDto,
+        conn: &mut Connection,
+    ) -> Result<(Score, Option<Level>, Option<User>), Error> {
+        let score = diesel::update(score::dsl::score)
+            .filter(score::dsl::id.eq(score_id))
+            .set(updated_visibility.clone())
+            .get_result::<Score>(conn)?;
+
+        let level = if let Some(level_id) = score.level_id {
+            Some(Level::find_by_id(level_id, conn)?)
+        } else {
+            None
+        };
+
+        let user = if let Some(user_id) = score.user_id {
+            Some(User::find_by_id(user_id, conn)?)
+        } else {
+            None
+        };
+
+        Ok((score, level, user).into())
     }
 
     /// Deletes multiple scores from the database with the given ids.

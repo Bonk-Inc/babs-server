@@ -10,7 +10,7 @@ use utoipa::{OpenApi, ToSchema};
 use uuid::Uuid;
 
 use crate::{
-    models::score::{ScoreDto, ScoreFormDto},
+    models::score::{ScoreDto, ScoreFormDto, ScoreUpdateVisibilityDto},
     response::{ErrorResponse, ResponseBody},
     service::score_service,
     SharedState,
@@ -18,8 +18,8 @@ use crate::{
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(index, show, level_scores, user_scores, store, update, destroy),
-    components(schemas(ScoreDto, ScoreFormDto, ScoreResponseBody, ScoresResponseBody))
+    paths(index, show, level_scores, user_scores, store, update, set_visibility, destroy),
+    components(schemas(ScoreDto, ScoreFormDto, ScoreResponseBody, ScoresResponseBody, ScoreUpdateVisibilityDto))
 )]
 pub struct ScoreApi;
 
@@ -213,6 +213,35 @@ pub async fn update(
     let pool = &app_state.read().unwrap().db;
 
     match score_service::update(id, updated_score, pool) {
+        Ok(scores) => Ok(ResponseBody::ok("Score updated", scores)),
+        Err(err) => Err(err),
+    }
+}
+
+#[utoipa::path(
+    patch,
+    path = "/{id}",
+    tag = "Score",
+    operation_id = "score_update_visibility",
+    request_body = ScoreUpdateVisibilityDto,
+    description = "Updates the visibility of a scores with the given id",
+    params(
+        ("id", Path, description = "Unique id of a Score")
+    ),
+    responses(
+        (status = StatusCode::OK, description = "Score updated successfully", body = ScoreResponseBody),
+        (status = StatusCode::BAD_REQUEST, description = "Invalid input", body = ErrorResponse),
+        (status = StatusCode::NOT_FOUND, description = "No score found by id", body = ErrorResponse)
+    )
+)]
+pub async fn set_visibility(
+    State(app_state): State<SharedState>,
+    Path(id): Path<Uuid>,
+    Json(updated_score): Json<ScoreUpdateVisibilityDto>,
+) -> Result<ResponseBody<ScoreDto>, ErrorResponse> {
+    let pool = &app_state.read().unwrap().db;
+
+    match score_service::set_visibility(id, updated_score, pool) {
         Ok(scores) => Ok(ResponseBody::ok("Score updated", scores)),
         Err(err) => Err(err),
     }
