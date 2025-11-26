@@ -18,7 +18,7 @@ use crate::{
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(index, show, level_scores, user_scores, store, update, set_visibility, destroy),
+    paths(index, show, level_scores, user_scores, store, update, set_visibility, destroy, bulk_delete),
     components(schemas(ScoreDto, ScoreFormDto, ScoreResponseBody, ScoresResponseBody, ScoreUpdateVisibilityDto, BulkDeleteResponseBody))
 )]
 pub struct ScoreApi;
@@ -297,7 +297,7 @@ pub struct BulkDeleteResponseBody {
     request_body = BulkDeleteRequest,
     description = "Bulk deletes scores to the database",
     responses(
-        (status = StatusCode::OK, description = "Scores successfully deletes", body = BulkDeleteResponseBody)
+        (status = StatusCode::OK, description = "Scores successfully deleted", body = BulkDeleteResponseBody)
     )
 )]
 pub async fn bulk_delete(
