@@ -28,6 +28,7 @@ pub fn score_routes() -> Router<SharedState> {
         .route("/{scoreId}", get(score::show).put(score::update).patch(score::set_visibility).delete(score::destroy))
         .route("/level/{levelId}", get(score::level_scores))
         .route("/user/{userId}", get(score::user_scores))
+        .route("/bulk_delete", post(score::bulk_delete))
 }
 
 pub fn stats_routes() -> Router<SharedState> {

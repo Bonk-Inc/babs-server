@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use uuid::Uuid;
 
 use crate::{
@@ -200,13 +198,23 @@ pub fn set_visibility(id: Uuid, hidden: ScoreUpdateVisibilityDto, pool: &Pool) -
 /// - an error occurred during execution.
 /// - no score could be found with the given id.
 ///
-pub fn delete(ids: String, pool: &Pool) -> Result<usize, ErrorResponse> {
-    let score_ids = ids
-        .split(',')
-        .filter_map(|s| Uuid::from_str(s).ok())
-        .collect::<Vec<Uuid>>();
+pub fn delete(id: Uuid, pool: &Pool) -> Result<usize, ErrorResponse> {
+    match Score::delete_many(vec![id], &mut pool.get().unwrap()) {
+        Ok(result) => Ok(result),
+        Err(_) => Err(ResponseBody::internal_error("Error while deleting score")),
+    }
+}
 
-    match Score::delete_many(score_ids, &mut pool.get().unwrap()) {
+/// Deletes scores from the database with the given ids.
+///
+/// # Errors
+///
+/// This function fails if:
+/// - an error occurred during execution.
+/// - no score could be found with the given id.
+///
+pub fn bulk_delete(ids: &Vec<Uuid>, pool: &Pool) -> Result<usize, ErrorResponse> {
+    match Score::delete_many(ids.clone(), &mut pool.get().unwrap()) {
         Ok(result) => Ok(result),
         Err(_) => Err(ResponseBody::internal_error("Error while deleting score")),
     }

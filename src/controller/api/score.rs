@@ -19,7 +19,7 @@ use crate::{
 #[derive(OpenApi)]
 #[openapi(
     paths(index, show, level_scores, user_scores, store, update, set_visibility, destroy),
-    components(schemas(ScoreDto, ScoreFormDto, ScoreResponseBody, ScoresResponseBody, ScoreUpdateVisibilityDto))
+    components(schemas(ScoreDto, ScoreFormDto, ScoreResponseBody, ScoresResponseBody, ScoreUpdateVisibilityDto, BulkDeleteResponseBody))
 )]
 pub struct ScoreApi;
 
@@ -254,7 +254,7 @@ pub async fn set_visibility(
     operation_id = "score_destroy",
     description = "Deletes a scores with the given id",
     params(
-        ("id", Path, description = "Unique id(s) of a Score (comma seperated)")
+        ("id", Path, description = "Unique id of a Score")
     ),
     responses(
         (status = StatusCode::NO_CONTENT, description = "Score deleted successfully"),
@@ -263,12 +263,51 @@ pub async fn set_visibility(
 )]
 pub async fn destroy(
     State(app_state): State<SharedState>,
-    Path(id): Path<String>,
+    Path(id): Path<Uuid>,
 ) -> Result<StatusCode, ErrorResponse> {
     let pool = &app_state.read().unwrap().db;
 
     match score_service::delete(id, &pool) {
         Ok(_) => Ok(StatusCode::NO_CONTENT),
+        Err(err) => Err(err),
+    }
+}
+
+/// The structure of the request body for the bulk score deletion action. This struct is primarily used for
+/// the OpenAPI docs.
+#[derive(Deserialize, ToSchema)]
+pub struct BulkDeleteRequest {
+    pub scores: Vec<Uuid>,
+}
+
+/// The structure of the response body for the bulk score deletion action. This struct is primarily used for
+/// the OpenAPI docs.
+#[derive(ToSchema)]
+pub struct BulkDeleteResponseBody {
+    pub message: String,
+    pub status: String,
+    pub data: Vec<Uuid>,
+}
+
+#[utoipa::path(
+    post,
+    path = "/bulk_delete",
+    tag = "Score",
+    operation_id = "score_bulk_delete",
+    request_body = BulkDeleteRequest,
+    description = "Bulk deletes scores to the database",
+    responses(
+        (status = StatusCode::OK, description = "Scores successfully deletes", body = BulkDeleteResponseBody)
+    )
+)]
+pub async fn bulk_delete(
+    State(app_state): State<SharedState>,
+    Json(scores_to_delete): Json<BulkDeleteRequest>,
+) -> Result<ResponseBody<Vec<Uuid>>, ErrorResponse> {
+    let pool = &app_state.read().unwrap().db;
+
+    match score_service::bulk_delete(&scores_to_delete.scores, &pool) {
+        Ok(_) => Ok(ResponseBody::ok("Scores deleted", scores_to_delete.scores)),
         Err(err) => Err(err),
     }
 }
