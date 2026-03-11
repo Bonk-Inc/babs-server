@@ -472,5 +472,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 .env
-data/
 **/dist/
