@@ -1,13 +1,13 @@
 #####################################################################
 ## Build Backend
 ####################################################################
-FROM rust:1.88-slim-bookworm AS backend-build
+FROM rust:1.94-slim-trixie AS build
 
 # install extra dependencies for cryptography.
 RUN apt-get update && apt-get install -y libssl-dev libpq-dev pkg-config
 
 # set the working directory.
-WORKDIR /bonk-inc-backend
+WORKDIR /babs-server
 
 # copy backend project files to the working directory.
 COPY ./ .
@@ -18,31 +18,25 @@ RUN cargo build --target x86_64-unknown-linux-gnu --release -p babs-server
 #####################################################################
 ## Final image
 ####################################################################
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 # install extra dependencies for cryptography.
 RUN apt-get update && apt-get install -y libpq5 ca-certificates
 RUN update-ca-certificates
 
-# Import from builder.
-COPY --from=backend-build /etc/passwd /etc/passwd
-COPY --from=backend-build /etc/group /etc/group
-
-WORKDIR /bonk-inc-backend
+WORKDIR /babs-server
 
 # Copy our build
-COPY --from=backend-build /bonk-inc-backend/target/x86_64-unknown-linux-gnu/release/babs-server ./
+COPY --from=build /babs-server/target/x86_64-unknown-linux-gnu/release/babs-server ./
 
-# create appuser
-ENV USER=bonk-inc-backend
-ENV UID=32767
+# Set appuser info
+ENV USER=babs-server
+ENV UID=666
 
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
+# Create new non-root user
+RUN useradd \
+    --system \
     --shell "/sbin/nologin" \
-    --no-create-home \
     --uid "${UID}" \
     "${USER}"
 
@@ -51,11 +45,12 @@ RUN mkdir data
 
 # Set file permissions
 RUN chmod +rw *
-RUN chown -R bonk-inc-backend:bonk-inc-backend *
+RUN chown -R ${USER}:${USER} *
 
 # Use an unprivileged user.
-USER bonk-inc-backend:bonk-inc-backend
+USER ${USER}
 
 EXPOSE 8080
 
-CMD ["/bonk-inc-backend/babs-server"]
+# Start the server
+ENTRYPOINT ["/babs-server/babs-server"]
