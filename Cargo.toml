@@ -8,7 +8,7 @@ readme = "README.md"
 [dependencies]
 axum = { version = "0.8.8", features = ["macros"] }
 chrono = { version = "0.4.44", features = ["serde"] }
-diesel = { version = "2.3.6", features = ["postgres", "chrono", "uuid", "r2d2"] }
+diesel = { version = "2.3.7", features = ["postgres", "chrono", "uuid", "r2d2"] }
 diesel_migrations = "2.3.1"
 dotenvy = "0.15.7"
 env_logger = "0.11.9"
