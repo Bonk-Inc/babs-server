@@ -1,13 +1,21 @@
+# Versions
+ARG RUST_IMAGE_VERSION=1.94-slim-trixie
+ARG DEBIAN_IMAGE_VERSION=trixie-slim
+
+# Set appuser info
+ARG USER=babs-website
+ARG USER_ID=32767
+
 #####################################################################
 ## Build Backend
 ####################################################################
-FROM rust:1.94-slim-trixie AS build
+FROM rust:${RUST_IMAGE_VERSION} AS build
 
 # install extra dependencies for cryptography.
 RUN apt-get update && apt-get install -y libssl-dev libpq-dev pkg-config
 
 # set the working directory.
-WORKDIR /babs-server
+WORKDIR /var/www/html
 
 # copy backend project files to the working directory.
 COPY ./ .
@@ -18,26 +26,25 @@ RUN cargo build --target x86_64-unknown-linux-gnu --release -p babs-server
 #####################################################################
 ## Final image
 ####################################################################
-FROM debian:trixie-slim
+FROM debian:${DEBIAN_IMAGE_VERSION}
+
+ARG USER
+ARG USER_ID
 
 # install extra dependencies for cryptography.
 RUN apt-get update && apt-get install -y libpq5 ca-certificates
 RUN update-ca-certificates
 
-WORKDIR /babs-server
+WORKDIR /var/www/html
 
 # Copy our build
-COPY --from=build /babs-server/target/x86_64-unknown-linux-gnu/release/babs-server ./
-
-# Set appuser info
-ENV USER=babs-server
-ENV UID=666
+COPY --from=build /var/www/html/target/x86_64-unknown-linux-gnu/release/babs-server ./
 
 # Create new non-root user
 RUN useradd \
     --system \
     --shell "/sbin/nologin" \
-    --uid "${UID}" \
+    --uid "${USER_ID}" \
     "${USER}"
 
 # Create data folder
@@ -53,4 +60,4 @@ USER ${USER}
 EXPOSE 8080
 
 # Start the server
-ENTRYPOINT ["/babs-server/babs-server"]
+ENTRYPOINT ["./babs-server"]
