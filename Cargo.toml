@@ -8,17 +8,17 @@ readme = "README.md"
 [dependencies]
 axum = { version = "0.8.9", features = ["macros"] }
 chrono = { version = "0.4.44", features = ["serde"] }
-diesel = { version = "2.3.8", features = ["postgres", "chrono", "uuid", "r2d2"] }
+diesel = { version = "2.3.9", features = ["postgres", "chrono", "uuid", "r2d2"] }
 diesel_migrations = "2.3.2"
 dotenvy = "0.15.7"
 env_logger = "0.11.10"
-jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
+jsonwebtoken = { version = "10.4.0", features = ["rust_crypto"] }
 log = "0.4.29"
 reqwest = { version = "0.13.3", features = ["json"] }
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
-tokio = { version = "1.52.1", features = ["full"] }
-tower-http = { version = "0.6.8", features = ["cors", "fs"] }
-utoipa = { version = "5.4.0", features = ["axum_extras", "chrono", "uuid"] }
+serde_json = "1.0.150"
+tokio = { version = "1.52.3", features = ["full"] }
+tower-http = { version = "0.6.11", features = ["cors", "fs"] }
+utoipa = { version = "5.5.0", features = ["axum_extras", "chrono", "uuid"] }
 utoipa-swagger-ui = { version = "9.0.2", features = ["axum", "reqwest"] }
 uuid = { version = "1.23.1", features = ["serde", "v4"] }
