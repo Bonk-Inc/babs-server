@@ -1,0 +1,16 @@
+services:
+  babs-server-db:
+    image: postgres:18-alpine
+    container_name: babs-server-db
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    env_file: .env
+    environment: 
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - babs-server-postgresql-data:/var/lib/postgresql
+volumes:
+  babs-server-postgresql-data:
