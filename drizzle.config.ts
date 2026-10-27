@@ -13,7 +13,7 @@ export default defineConfig({
     host: DATABASE_HOST,
     database: DATABASE_NAME,
     user: DATABASE_USER,
-    port: DATABASE_PORT,
+    port: parseInt(DATABASE_PORT),
     password: DATABASE_PASSWORD
   },
 	verbose: true,
