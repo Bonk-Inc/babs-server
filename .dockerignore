@@ -1,7 +1,0 @@
-.github/
-.idea/
-dist/
-target/
-
-.gitignore
-README.md
