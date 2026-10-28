@@ -7,7 +7,7 @@ if (invalidConfig)
   throw new Error('Database config is not set');
 
 export default defineConfig({
-	schema: './src/db/schema',
+	schema: './src/db/schema.ts',
 	dialect: 'postgresql',
 	dbCredentials: { 
     host: DATABASE_HOST,
@@ -17,5 +17,5 @@ export default defineConfig({
     password: DATABASE_PASSWORD
   },
 	verbose: true,
-	strict: true
+	strict: true,
 });

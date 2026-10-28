@@ -1,13 +1,17 @@
+import { getRequestEvent } from '$app/server';
+import { OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_PROVIDER } from '$app/env/private';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { genericOAuth } from 'better-auth/plugins';
-import { db } from '../db';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
-import { getRequestEvent } from '$app/server';
-import { OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_PROVIDER } from '$app/env/private';
+import { db } from '../db';
+import * as schema from '../db/schema';
 
 export const auth = betterAuth({
-  database: drizzleAdapter(db, { provider: 'pg' }),
+  database: drizzleAdapter(db, { 
+    provider: 'pg',
+    schema
+  }),
   emailAndPassword: {
     enabled: false
   },
@@ -23,5 +27,9 @@ export const auth = betterAuth({
         }
       ]
     })
-  ]
+  ],
+  user: { modelName: 'users' },
+  account: { modelName: 'accounts' },
+  session: { modelName: 'sessions' },
+  verification: { modelName: 'verifications' }
 });
