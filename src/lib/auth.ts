@@ -23,7 +23,9 @@ export const auth = betterAuth({
           providerId: 'bonk-sso',
           clientId: OAUTH_CLIENT_ID,
           clientSecret: OAUTH_CLIENT_SECRET,
-          discoveryUrl: `${OAUTH_PROVIDER}/.well-known/openid-configuration`
+          discoveryUrl: `${OAUTH_PROVIDER}/.well-known/openid-configuration`,
+          disableSignUp: false,
+          scopes: ['profile', 'openid', 'email', 'offline_access']
         }
       ]
     })
