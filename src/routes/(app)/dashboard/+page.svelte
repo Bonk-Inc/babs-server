@@ -1,9 +1,9 @@
 <script lang="ts">
   import { useSession } from "#lib/auth-client";
 
-const session = useSession();
+  const session = useSession();
 </script>
 
-<main>
+<p>
   {$session.data?.user.name}
-</main>
+</p>
