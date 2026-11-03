@@ -4,8 +4,8 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { genericOAuth } from 'better-auth/plugins';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
-import { db } from '../db';
-import * as schema from '../db/schema';
+import { db } from './db';
+import * as schema from './db/schema';
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { 

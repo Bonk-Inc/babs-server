@@ -2,21 +2,15 @@
   import * as Card from "#lib/components/ui/card/index.ts";
   import { DatabaseZap, KeySquare, LoaderCircle } from "@lucide/svelte";
   import { buttonVariants } from "#lib/components/ui/button";
-  import { signIn, useSession } from "#lib/auth-client";
-  import { goto } from "$app/navigation";
+  import { signIn } from "#lib/auth-client";
 
-  const session = useSession();
   let loading = $state(false);
-
-  if(session) {
-    goto('/dashboard');
-  }
 
   const handleSignIn = async () => {
     loading = true;
     await signIn.social({
       provider: "bonk-sso",
-      callbackURL: "/",
+      callbackURL: "/dashboard",
     });
   };
 </script>

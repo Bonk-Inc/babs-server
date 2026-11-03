@@ -4,11 +4,11 @@
   import AppHeader from './app-header.svelte';
   import AppSidebar from './app-sidebar.svelte';
 
-  let { children }: LayoutProps = $props();
+  let { children, data }: LayoutProps = $props();
 </script>
 
 <Sidebar.Provider>
-  <AppSidebar />
+  <AppSidebar games={data.games} />
   <Sidebar.Inset>
     <AppHeader />
     <main>

@@ -1,6 +1,13 @@
 <script lang="ts">
   import { DatabaseZap, Joystick } from '@lucide/svelte';
-  import * as Sidebar from '#lib/components/ui/sidebar/index';
+  import * as Sidebar from '#lib/components/ui/sidebar/index.ts';
+  import type { GameDTO } from '#lib/dtos/GameDTO.ts';
+
+  interface Props {
+    games: GameDTO[]
+  }
+
+  let { games }: Props = $props();
 </script>
 
 <Sidebar.Root>
@@ -22,16 +29,18 @@
         Games
       </Sidebar.GroupLabel>
       <Sidebar.Menu>
-        <Sidebar.MenuItem>
-          <Sidebar.MenuButton>
-            {#snippet child({ props })}
-               <a href="/" {...props}>
-                <Joystick />
-                <span>Test</span>
-              </a>
-            {/snippet}
-          </Sidebar.MenuButton>
-        </Sidebar.MenuItem>
+        {#each games as game (game.id)}
+          <Sidebar.MenuItem>
+            <Sidebar.MenuButton>
+              {#snippet child({ props })}
+                <a href={`/games/${game.id}`} {...props}>
+                  <Joystick />
+                  <span>{game.name}</span>
+                </a>
+              {/snippet}
+            </Sidebar.MenuButton>
+          </Sidebar.MenuItem>
+        {/each}
       </Sidebar.Menu>
     </Sidebar.Group>
   </Sidebar.Content>

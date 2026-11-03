@@ -1,6 +1,6 @@
 import type { Handle } from "@sveltejs/kit/hooks";
 import { building } from "$app/env";
-import { auth } from "#lib/auth.ts";
+import { auth } from "#lib/server/auth";
 import { svelteKitHandler } from "better-auth/svelte-kit";
 import { redirect } from "@sveltejs/kit";
 
@@ -24,7 +24,7 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
   }
   
   // Redirect the user to the sign-in page if not authenticated.
-  redirect(307, "/sign-in");
+  redirect(307, '/');
 };
 
 export const handle: Handle = handleBetterAuth;
