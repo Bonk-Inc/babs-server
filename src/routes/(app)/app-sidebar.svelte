@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { DatabaseZap, Joystick } from '@lucide/svelte';
+  import { DatabaseZap, Joystick, Plus } from '@lucide/svelte';
+  import { buttonVariants } from '#lib/components/ui/button/button.svelte';
   import * as Sidebar from '#lib/components/ui/sidebar/index.ts';
   import type { GameDTO } from '#lib/dtos/GameDTO.ts';
 
@@ -33,7 +34,7 @@
           <Sidebar.MenuItem>
             <Sidebar.MenuButton>
               {#snippet child({ props })}
-                <a href={`/games/${game.id}`} {...props}>
+                <a href={`/game/${game.id}`} {...props}>
                   <Joystick />
                   <span>{game.name}</span>
                 </a>
@@ -44,4 +45,16 @@
       </Sidebar.Menu>
     </Sidebar.Group>
   </Sidebar.Content>
+  <Sidebar.Footer>
+    <Sidebar.MenuItem>
+      <Sidebar.MenuButton size="lg">
+        {#snippet child({ props })}
+          <a href="/game/create" class={`${props.class} ${buttonVariants({ variant: "default", size: "default" })} justify-center`}>
+            <Plus size="64" />
+            <span class="text-md font-medium tracking-wide">Toevoegen</span>
+          </a>
+        {/snippet}
+      </Sidebar.MenuButton>
+    </Sidebar.MenuItem>
+  </Sidebar.Footer>
 </Sidebar.Root>

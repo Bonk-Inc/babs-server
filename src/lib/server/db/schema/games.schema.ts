@@ -9,7 +9,7 @@ export const games = pgTable('games', {
   created_by: text('created_by')
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  updated_at: timestamp({ withTimezone: true }),
+  updated_at: timestamp({ withTimezone: true }).defaultNow(),
   updated_by: text('updated_by')
     .references(() => users.id, { onDelete: "cascade" }),
 });
