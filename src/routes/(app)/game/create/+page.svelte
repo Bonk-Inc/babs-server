@@ -1,17 +1,26 @@
 <script lang="ts">
   import * as Card from "#lib/components/ui/card/index.ts";
   import * as Form from "#lib/components/ui/form/index.ts";
-  import { untrack } from "svelte";
-  import { superForm, type Infer, type SuperValidated } from "sveltekit-superforms";
-  import { zod4Client } from "sveltekit-superforms/adapters";
-  import { gameFormSchema, type GameFormSchema } from "../schema";
   import { Input } from "#lib/components/ui/sidebar/index.js";
   import { Save } from "@lucide/svelte";
+  import { goto } from "$app/navigation";
+  import { untrack } from "svelte";
+  import { superForm } from "sveltekit-superforms";
+  import { zod4Client } from "sveltekit-superforms/adapters";
+  import { toast } from "svelte-sonner";
+  import { gameFormSchema } from "../schema";
 
   let { data } = $props();
 
   const form = superForm(untrack(() => data.form), {
-    validators: zod4Client(gameFormSchema)
+    validators: zod4Client(gameFormSchema),
+    onUpdated({ form }) {
+      if(form.valid) {
+        toast.success('Game toegevoegd');
+       
+        goto(`/game/${form.message.id}`);
+      }
+    }
   });
 
   const { form: formData, enhance } = form;
