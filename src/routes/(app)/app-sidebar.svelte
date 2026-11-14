@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { DatabaseZap, Joystick, Plus } from '@lucide/svelte';
   import { buttonVariants } from '#lib/components/ui/button/button.svelte';
   import * as Sidebar from '#lib/components/ui/sidebar/index.ts';
   import type { GameDTO } from '#lib/dtos/GameDTO.ts';
+  import { DatabaseZap, Joystick, Plus } from '@lucide/svelte';
 
   interface Props {
     games: GameDTO[]

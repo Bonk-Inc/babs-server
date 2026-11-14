@@ -3,11 +3,11 @@
   import * as Form from "#lib/components/ui/form/index.ts";
   import { Input } from "#lib/components/ui/sidebar/index.js";
   import { Save } from "@lucide/svelte";
-  import { goto } from "$app/navigation";
   import { untrack } from "svelte";
   import { superForm } from "sveltekit-superforms";
   import { zod4Client } from "sveltekit-superforms/adapters";
   import { toast } from "svelte-sonner";
+  import { goto } from "$app/navigation";
   import { gameFormSchema } from "../schema";
 
   let { data } = $props();

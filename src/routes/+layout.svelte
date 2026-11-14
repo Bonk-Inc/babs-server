@@ -1,7 +1,7 @@
 <script lang="ts">
-	import './layout.css';
 	import favicon from '#lib/assets/favicon.svg';
   import { Toaster } from '#lib/components/ui/sonner';
+  import './layout.css';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();

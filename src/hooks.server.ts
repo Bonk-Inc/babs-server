@@ -1,6 +1,6 @@
-import type { Handle } from "@sveltejs/kit/hooks";
-import { building } from "$app/env";
 import { auth } from "#lib/server/auth";
+import { building } from "$app/env";
+import type { Handle } from "@sveltejs/kit/hooks";
 import { svelteKitHandler } from "better-auth/svelte-kit";
 import { redirect } from "@sveltejs/kit";
 
