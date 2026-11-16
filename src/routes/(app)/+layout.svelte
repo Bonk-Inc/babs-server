@@ -11,8 +11,6 @@
   <AppSidebar games={data.games} />
   <Sidebar.Inset>
     <AppHeader />
-    <main class="p-4">
-      {@render children()}
-    </main>
+    {@render children()}
   </Sidebar.Inset>
 </Sidebar.Provider>
