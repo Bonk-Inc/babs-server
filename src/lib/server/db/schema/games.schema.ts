@@ -5,12 +5,18 @@ import { relations } from "drizzle-orm";
 export const games = pgTable('games', {
   id: serial('id').primaryKey(),
   name: varchar({ length: 50 }).notNull(),
-  created_at: timestamp({ withTimezone: true }).defaultNow(),
+  created_at: timestamp({ withTimezone: true })
+    .defaultNow()
+    .notNull(),
   created_by: text('created_by')
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  updated_at: timestamp({ withTimezone: true }).defaultNow(),
+  updated_at: timestamp({ withTimezone: true })
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
   updated_by: text('updated_by')
+    .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
 });
 

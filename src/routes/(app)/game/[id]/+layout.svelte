@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as NavigationMenu from "#lib/components/ui/navigation-menu/index.ts";
-  import { House } from "@lucide/svelte";
+  import { Cog, House } from "@lucide/svelte";
   import type { LayoutProps } from "./$types";
   import { page } from "$app/state";
   import { cn } from "cn";
@@ -12,13 +12,18 @@
     { 'border-foreground': active }
   )
 
-  let menuItems = [
+  let menuItems = $derived([
     {
       path: `/game/${data.game.id}`,
       label: 'Home',
       icon: House
+    },
+    {
+      path: `/game/${data.game.id}/settings`,
+      label: 'Settings',
+      icon: Cog
     }
-  ]
+  ])
 </script>
 
 <div class="border-b">
@@ -26,7 +31,7 @@
     <NavigationMenu.List>
       {#each menuItems as item}
         <NavigationMenu.Item>
-          <NavigationMenu.Link href={item.path} class={navigationMenuLinkStyle(page.params.id == data.game.id)}>
+          <NavigationMenu.Link href={item.path} class={navigationMenuLinkStyle(page.url.pathname === item.path)}>
             <item.icon /> {item.label}
           </NavigationMenu.Link>
         </NavigationMenu.Item>
