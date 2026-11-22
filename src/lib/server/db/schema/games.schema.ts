@@ -1,6 +1,7 @@
 import { pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { users } from "./auth.schema";
 import { relations } from "drizzle-orm";
+import { levels } from "./levels.schema";
 
 export const games = pgTable('games', {
   id: serial('id').primaryKey(),
@@ -20,9 +21,10 @@ export const games = pgTable('games', {
     .references(() => users.id, { onDelete: "cascade" }),
 });
 
-export const gamesRelations = relations(games, ({ one }) => ({
+export const gamesRelations = relations(games, ({ one, many }) => ({
   user: one(users, {
-    fields: [games.id],
+    fields: [games.created_by],
     references: [users.id]
-  })
+  }),
+  levels: many(levels)
 }));

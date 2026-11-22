@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
 import { games } from "./games.schema";
+import { levels } from "./levels.schema";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -77,7 +78,8 @@ export const verifications = pgTable(
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   accounts: many(accounts),
-  games: many(games)
+  games: many(games),
+  levels: many(levels)
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({

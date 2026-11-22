@@ -15,6 +15,13 @@
       "when": 1795032015309,
       "tag": "0001_huge_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795381760778,
+      "tag": "0002_ancient_gressill",
+      "breakpoints": true
     }
   ]
 }
